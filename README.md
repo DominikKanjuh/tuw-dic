@@ -6,8 +6,8 @@ The project implements a MapReduce pipeline using Python's `mrjob` library to co
 
 ## Team Members (Group 57)
 
-- Amina Kadić
+- Amina Kadić, 12439016
 - Meliha Kasapović, 12439367
 - Dominik Kanjuh, 12433751
 - Filip Bürgler, 12433750
-- Lazar Milanov
+- Lazar Milanov, 12329603
