@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# Logs
+*.log
+
+# Output directories
+data/intermediate/
+data/output/
