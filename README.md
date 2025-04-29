@@ -69,12 +69,59 @@ uv pip install -r requirements.lock.txt
 
 ---
 
-## Running the Pipeline
+# Running the MapReduce Pipeline
 
-From the **project root**, execute:
+This project implements a chi-square term selection pipeline using `mrjob` and the Amazon Review Dataset (2014).
+
+---
+
+## Local Execution
 
 ```bash
-python src/run_pipeline.py
+python src/run_pipeline.py --local \
+  --input data/input/reviews_devset.json \
+  --stopwords data/input/stopwords.txt \
+  --output data/intermediate
+```
+
+- Intermediate results are stored in: `data/intermediate/`
+- Final output is written to: `data/output/output.txt`
+
+---
+
+## Cluster Execution
+
+```bash
+python src/run_pipeline.py --cluster \
+  --input hdfs:///user/dic25_shared/amazon-reviews/full/reviews_devset.json \
+  --stopwords hdfs:///user/e<student-id>/input/stopwords.txt \
+  --output hdfs:///user/e<student-id>
+```
+
+For the full dataset:
+
+```bash
+python src/run_pipeline.py --cluster \
+  --input hdfs:///user/dic25_shared/amazon-reviews/full/reviewscombined.json \
+  --stopwords hdfs:///user/e<student-id>/input/stopwords.txt \
+  --output hdfs:///user/e<student-id>
+```
+
+---
+
+## Shortcut
+
+To run everything on the cluster in one step:
+
+```bash
+chmod +x copy_and_run.sh
+```
+
+Then execute:
+
+```bash
+./copy_and_run.sh
+
 ```
 
 > **Note**: Use `python3` if `python` points to Python 2.x on your system.

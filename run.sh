@@ -17,8 +17,8 @@ fi
 hadoop fs -mkdir -p hdfs:///user/"$user_id"/input
 hadoop fs -put ~/dic/assignment-1/data/input/stopwords.txt hdfs:///user/"$user_id"/input/ || true
 
-INPUT_DATASET="hdfs:///user/dic25_shared/amazon-reviews/full/reviewscombined.json"
-#INPUT_DATASET="hdfs:///user/dic25_shared/amazon-reviews/full/reviews_devset.json"
+#INPUT_DATASET="hdfs:///user/dic25_shared/amazon-reviews/full/reviewscombined.json"
+INPUT_DATASET="hdfs:///user/dic25_shared/amazon-reviews/full/reviews_devset.json"
 
 python src/run_pipeline.py --cluster \
     --input "$INPUT_DATASET" \
@@ -26,4 +26,4 @@ python src/run_pipeline.py --cluster \
     --output hdfs:///user/"$user_id"
 
 echo "Pipeline completed successfully."
-ls -allah output.txt
+ls -lah output.txt

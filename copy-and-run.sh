@@ -18,7 +18,7 @@ scp -r src/ run.sh data/input/stopwords.txt requirements.txt requirements.lock.t
 
 ssh "$user_id"@lbd.tuwien.ac.at 'mkdir -p ~/dic/assignment-1/data/input && mv ~/dic/assignment-1/stopwords.txt ~/dic/assignment-1/data/input/stopwords.txt'
 
-ssh "$user_id"@lbd.tuwien.ac.at "set -x; ls -allah ~/dic/assignment-1 && cd ~/dic/assignment-1 && bash run.sh \"$user_id\""
+ssh "$user_id"@lbd.tuwien.ac.at "set -x; ls -lah ~/dic/assignment-1 && cd ~/dic/assignment-1 && bash run.sh \"$user_id\""
 
 echo "Cluster run completed. Copying output file..."
 
