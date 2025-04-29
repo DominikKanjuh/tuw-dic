@@ -7,7 +7,14 @@ def run_job(script, input_file, output_dir, extra_args=[]):
     print(f"Completed {script}")
 
 
+def clear_output_dirs():
+    subprocess.run(["python", "src/scripts/clear_dirs.py"], check=True)
+    print("Cleared intermediate and output directories")
+
+
 def main():
+    clear_output_dirs()
+
     run_job(
         "src/jobs/preprocess_job.py",
         "data/input/reviews_devset.json",
@@ -30,7 +37,6 @@ def main():
         "data/intermediate/topk_outputs",
     )
 
-    # Final merging of parts for output.txt
     subprocess.run(
         [
             "python",
