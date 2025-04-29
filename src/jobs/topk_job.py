@@ -1,54 +1,35 @@
+#!/usr/bin/env python3
 from mrjob.job import MRJob
-from mrjob.step import MRStep
-import ast
-from collections import defaultdict
-import mrjob.protocol
+from mrjob.protocol import JSONProtocol, RawValueProtocol
+import heapq
 
-
-class TopKJob(MRJob):
-    INPUT_PROTOCOL = mrjob.protocol.JSONProtocol
-    OUTPUT_PROTOCOL = mrjob.protocol.RawValueProtocol
+class Top75TermsPerCategory(MRJob):
+    # read JSON-encoded ([term,category], chi2) pairs
+    INPUT_PROTOCOL  = JSONProtocol
+    # emit raw text lines
+    OUTPUT_PROTOCOL = RawValueProtocol
 
     def mapper(self, key, value):
-        if isinstance(key, str):
-            key = ast.literal_eval(key)
-        if isinstance(value, str):
-            value = float(value)
-        category, token = key
-        yield category, (token, value)
+        # key == [term, category], value == chi2
+        term, category = key      # first element is term, second is category
+        chi2 = float(value)
+        # emit by category so reducer can collect all (chi2,term)
+        yield category, (chi2, term)
 
-    def reducer_init(self):
-        self.category_to_tokens = defaultdict(list)
+    def reducer(self, category, values):
+        # keep a min-heap of size 75 for this category
+        h = []
+        for chi2, term in values:
+            if len(h) < 75:
+                heapq.heappush(h, (chi2, term))
+            else:
+                heapq.heappushpop(h, (chi2, term))
 
-    def reducer(self, category, token_values):
-        self.category_to_tokens[category].extend(token_values)
+        # sort descending by chi2 and format
+        top75 = sorted(h, key=lambda x: -x[0])
+        pairs = [f"{term}:{chi2}" for chi2, term in top75]
+        # wrap category in <> and emit one line
+        yield None, f"<{category}> " + " ".join(pairs)
 
-    def reducer_final(self):
-        all_terms = set()
-        sorted_categories = sorted(self.category_to_tokens.keys())
-        for category in sorted_categories:
-            top_tokens = sorted(self.category_to_tokens[category], key=lambda x: -x[1])[
-                :75
-            ]
-            formatted_tokens = " ".join(
-                f"{token}:{score:.2f}" for token, score in top_tokens
-            )
-            yield None, f"{category} {formatted_tokens}"
-            all_terms.update(token for token, _ in top_tokens)
-
-        merged_line = " ".join(sorted(all_terms))
-        yield None, merged_line
-
-    def steps(self):
-        return [
-            MRStep(
-                mapper=self.mapper,
-                reducer_init=self.reducer_init,
-                reducer=self.reducer,
-                reducer_final=self.reducer_final,
-            )
-        ]
-
-
-if __name__ == "__main__":
-    TopKJob.run()
+if __name__ == '__main__':
+    Top75TermsPerCategory.run()
