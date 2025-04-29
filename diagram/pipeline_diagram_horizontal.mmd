@@ -1,0 +1,14 @@
+flowchart LR
+    A["PreprocessJob: Clean and tokenize text. Output: (category, token) → count"]
+    B["CountJob: Aggregate token counts. Output: (category, token) → total_count"]
+    C["ChiSquareJob: Compute chi-square values. Output: (category, token) → chi2_value"]
+    D["TopKJob: Select top 75 tokens and merge. Output: category token1:score1 ..."]
+    E["Output: output.txt with top tokens and merged dictionary"]
+
+    A --> B --> C --> D --> E
+
+    classDef stage fill:#e0f7ff,stroke:#000,color:#000;
+    classDef file fill:#fff5f5,stroke:#000,color:#000;
+
+    class A,B,C,D stage;
+    class E file;

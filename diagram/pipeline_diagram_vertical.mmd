@@ -1,0 +1,12 @@
+flowchart TD
+    A["PreprocessJob: Cleans and tokenizes review text, filters stopwords and short tokens. Output: (category, token) → count"] -->
+    B["CountJob: Aggregates token counts across reviews within each category. Output: (category, token) → total_count"] -->
+    C["ChiSquareJob: Computes chi-square values for each token in each category. Output: (category, token) → chi2_value"] -->
+    D["TopKJob: Selects top 75 tokens per category by chi-square score and produces a merged dictionary. Output: category token1:score1 token2:score2 ... merged_dictionary_token1 merged_token2 ..."] -->
+    E["Output: output.txt contains one line per category and one line with merged dictionary"]
+
+    classDef stage fill:#e0f7ff,stroke:#000,color:#000;
+    classDef file fill:#fff5f5,stroke:#000,color:#000;
+
+    class A,B,C,D stage;
+    class E file;
