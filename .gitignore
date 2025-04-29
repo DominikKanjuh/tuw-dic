@@ -15,6 +15,5 @@ __pycache__/
 # Logs
 *.log
 
-# Output directories
+# Temporary files
 data/intermediate/
-data/output/
