@@ -87,7 +87,7 @@ This runs the **MapReduce pipeline** in sequence:
 4. **Top-K term selection & output formatting**
 
 - **Intermediate outputs**: `data/intermediate/`
-- **Final output**: `data/output/top75_terms.txt`
+- **Final output**: `data/output/output.txt`
 
 ---
 
