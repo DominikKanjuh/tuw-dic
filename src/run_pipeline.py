@@ -2,6 +2,8 @@
 import subprocess
 import os
 
+HADOOP_STREAMING_JAR = "/usr/lib/hadoop/tools/lib/hadoop-streaming-3.3.6.jar" 
+
 def clear_output_dirs():
     subprocess.run(["python", "src/scripts/clear_dirs.py"], check=True)
     print("Cleared intermediate and output directories")
@@ -39,10 +41,20 @@ def run_job(script, input_files, output_dir, extra_args=None):
     else:
         inputs = input_files
 
-    cmd = ["python", script, "-r", "inline"] + extra_args + inputs + ["--output-dir", output_dir]
+    cmd = [
+        "python", script,
+        "-r", "hadoop",
+        "--hadoop-streaming-jar", HADOOP_STREAMING_JAR
+    ] + extra_args + inputs + ["--output-dir", output_dir]
+    
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, check=True)
     print(f"Completed {script}\n")
+
+def fetch_hdfs_dir(hdfs_path, local_dir):
+    os.makedirs(os.path.dirname(local_dir), exist_ok=True)
+    subprocess.run(["hdfs", "dfs", "-get", "-f", hdfs_path, local_dir], check=True)
+
 
 def main():
     clear_output_dirs()
@@ -50,7 +62,7 @@ def main():
     # 1) Preprocess: token/category pairs
     run_job(
         "src/jobs/preprocess_job.py",
-        "data/input/reviews_devset.json",
+        "hdfs:///user/dic25_shared/amazon-reviews/full/reviewscombined.json",
         "data/intermediate/preprocessed",
         ["--stopwords", "data/input/stopwords.txt"],
     )
@@ -58,15 +70,19 @@ def main():
     # 2) Count: per-category & per-term-per-category
     run_job(
         "src/jobs/count_job.py",
-        "data/intermediate/preprocessed",
+        "hdfs:///user/e12439367/data/intermediate/preprocessed",
         "data/intermediate/counts",
     )
 
-    # 3) Merge those two small Hadoop outputs *locally*
+    # fetching hdfs directories locally
+    fetch_hdfs_dir("hdfs:///user/e12439367/data/intermediate/counts", "data/tmp/counts")
+    fetch_hdfs_dir("hdfs:///user/e12439367/data/intermediate/preprocessed", "data/tmp/preprocessed")
+
+    # 3) Merging 
     merge_dirs_to_file(
         [
-            "data/intermediate/counts",       # per-category + global counts
-            "data/intermediate/preprocessed", # per-term-per-category counts
+            "data/tmp/counts",
+            "data/tmp/preprocessed",
         ],
         "data/intermediate/counts_all.txt"
     )
@@ -76,7 +92,7 @@ def main():
     #    ship counts_all.txt as side‐file
     run_job(
         "src/jobs/chi_square_job.py",
-        "data/intermediate/preprocessed",
+        "hdfs:///user/e12439367/data/intermediate/preprocessed",
         "data/intermediate/chi2_scores",
         ["--counts-all", "data/intermediate/counts_all.txt"],
     )
@@ -84,20 +100,26 @@ def main():
     # 5) Extract top K
     run_job(
         "src/jobs/topk_job.py",
-        "data/intermediate/chi2_scores",
+        "hdfs:///user/e12439367/data/intermediate/chi2_scores",
         "data/intermediate/topk_outputs",
     )
-
-    # 6) Merge top-K parts into final output.txt
+    # 6) Fetching 
+    fetch_hdfs_dir(
+        "hdfs:///user/e12439367/data/intermediate/topk_outputs",
+        "data/tmp/topk_outputs"
+    )
+    
+    # 7) Running script for final merging and formating
     subprocess.run(
         [
             "python",
             "src/scripts/merge_topk_outputs.py",
-            "data/intermediate/topk_outputs",
+            "data/tmp/topk_outputs",
             "data/output/output.txt",
         ],
         check=True,
     )
+
 
     print("Pipeline complete!")
 

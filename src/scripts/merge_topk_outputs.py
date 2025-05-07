@@ -9,6 +9,11 @@ all_tokens = set()
 
 for filename in sorted(os.listdir(input_dir)):
     path = os.path.join(input_dir, filename)
+    
+    if os.path.isdir(path): 
+        print(f"Skipping directory: {path}")
+        continue
+    
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
